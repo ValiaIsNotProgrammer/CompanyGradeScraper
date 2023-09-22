@@ -30,7 +30,7 @@ class CustomRetryMiddleware(RetryMiddleware):
 
 
 
-
+# ---- Временно не используются -------------------------------------
 
 class SiteRatingScraperSpiderMiddleware:
     @classmethod
