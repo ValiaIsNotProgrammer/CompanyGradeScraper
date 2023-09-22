@@ -4,24 +4,19 @@ function main(splash)
     splash.plugins_enabled = true
     splash.resource_timeout = 30.0
     local url = splash.args.url
-    local button_path = splash.args.button_path
+    local scroll_button_path = splash.args.button_path
     local sec
     if splash.args.fast_load == "true" then
 	    sec = 1
 	 else
 	    sec = 5
     end
+
     assert(splash:go(url))
     assert(splash:wait(sec))
 
-    local button
+   local button = splash:select(scroll_button_path)
 
-    if splash.args.div_index then
-        local index = tonumber(splash.args.div_index)
-        button = splash:select_all(button_path)[index]
-    else
-        button = splash:select(button_path)
-    end
     if button then
         assert(button:mouse_click())
         assert(splash:wait(sec))

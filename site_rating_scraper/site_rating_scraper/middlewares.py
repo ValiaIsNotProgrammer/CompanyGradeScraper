@@ -1,31 +1,45 @@
-# Define here the models for your spider middleware
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-
 from scrapy import signals
+from scrapy.downloadermiddlewares.retry import RetryMiddleware
+from twisted.internet import defer
+from scrapy.utils.response import response_status_message
 
-# useful for handling different item types with a single interface
-from itemadapter import is_item, ItemAdapter
+
+class CustomRetryMiddleware(RetryMiddleware):
+
+    def __init__(self, settings):
+        super().__init__(settings)
+        self.max_retry_times = 2
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        middleware = super().from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(middleware.spider_error, signal=signals.spider_error)
+        return middleware
+
+    def process_response(self, request, response, spider):
+        if response.status in self.retry_http_codes:
+            reason = response_status_message(response.status)
+            return self._retry(request, reason, spider) or response
+        return response
+
+    def spider_error(self, failure, request, spider):
+        if failure.check(defer.TimeoutError) and 'download_timeout' in request.meta:
+            return self._retry(request, "TimeoutError", spider)
+        else:
+            return None
+
+
+
 
 
 class SiteRatingScraperSpiderMiddleware:
-    # Not all methods need to be defined. If a method is not defined,
-    # scrapy acts as if the spider middleware does not modify the
-    # passed objects.
-
     @classmethod
     def from_crawler(cls, crawler):
-        # This method is used by Scrapy to create your spiders.
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
 
     def process_spider_input(self, response, spider):
-        # Called for each response that goes through the spider
-        # middleware and into the spider.
-
-        # Should return None or raise an exception.
         return None
 
     def process_spider_output(self, response, result, spider):
