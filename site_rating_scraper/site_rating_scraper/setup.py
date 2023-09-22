@@ -6,5 +6,5 @@ from spiders.nopriz import NoprizSpider
 from spiders.egrz_spider import EgrzSpider
 
 process = CrawlerProcess(get_project_settings())
-process.crawl(EgrzSpider.name)
+process.crawl(<spider_name>.name)
 process.start()
